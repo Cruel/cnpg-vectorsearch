@@ -1,0 +1,22 @@
+ARG PG_VERSION
+ARG OS_CODENAME
+FROM ghcr.io/cloudnative-pg/postgresql:${PG_VERSION}-standard-${OS_CODENAME}
+
+ARG PG_VERSION
+ARG OS_CODENAME
+ARG TARGETARCH
+ARG PG_MAJOR
+ARG PG_SEARCH_VERSION
+ARG PGVECTORSCALE_VERSION
+ARG VECTORCHORD_VERSION
+
+USER root
+
+COPY install-extensions.sh /tmp/install-extensions.sh
+
+# Run the installation and cleanup in a single layer to keep the image small
+RUN chmod +x /tmp/install-extensions.sh && \
+    /tmp/install-extensions.sh && \
+    rm /tmp/install-extensions.sh
+
+USER 26

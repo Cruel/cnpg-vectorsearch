@@ -3,7 +3,7 @@ name: Build and Push to GitLab
 on:
   push:
     branches:
-      - main
+      - master
       - staging
       - prod
     tags:
@@ -13,6 +13,10 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [cnpg, pgvector]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,18 +40,20 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.${{ matrix.variant }}
           load: true
-          tags: test-image:latest
+          tags: test-image-${{ matrix.variant }}:latest
           build-args: |
             PG_VERSION=${{ env.PG_VERSION }}
             PG_MAJOR=${{ env.PG_MAJOR }}
             PG_SEARCH_VERSION=${{ env.PG_SEARCH_VERSION }}
             PGVECTORSCALE_VERSION=${{ env.PGVECTORSCALE_VERSION }}
+            VECTORCHORD_VERSION=${{ env.VECTORCHORD_VERSION }}
             OS_CODENAME=${{ env.OS_CODENAME }}
 
       - name: Run verification test
         run: |
-          ./test-extensions.sh test-image:latest
+          ./test-extensions.sh test-image-${{ matrix.variant }}:latest
 
       - name: Login to GitLab Container Registry
         uses: docker/login-action@v3
@@ -60,6 +66,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.${{ matrix.variant }}
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
@@ -67,6 +74,7 @@ jobs:
             PG_MAJOR=${{ env.PG_MAJOR }}
             PG_SEARCH_VERSION=${{ env.PG_SEARCH_VERSION }}
             PGVECTORSCALE_VERSION=${{ env.PGVECTORSCALE_VERSION }}
+            VECTORCHORD_VERSION=${{ env.VECTORCHORD_VERSION }}
             OS_CODENAME=${{ env.OS_CODENAME }}
           tags: |
-            registry.gitlab.com/cruel/cnpg-vectorsearch:${{ github.ref_name }}
+            registry.gitlab.com/cruel/cnpg-vectorsearch:${{ matrix.variant }}-${{ github.ref_name }}

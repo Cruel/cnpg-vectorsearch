@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
-if [ -z "$PG_VERSION" ] || [ -z "$PG_MAJOR" ] || [ -z "$PG_SEARCH_VERSION" ] || [ -z "$PGVECTORSCALE_VERSION" ] || [ -z "$OS_CODENAME" ]; then
-    echo "Error: Missing required build-args (PG_VERSION, PG_MAJOR, PG_SEARCH_VERSION, PGVECTORSCALE_VERSION, OS_CODENAME)"
+if [ -z "$PG_VERSION" ] || [ -z "$PG_MAJOR" ] || [ -z "$PG_SEARCH_VERSION" ] || [ -z "$PGVECTORSCALE_VERSION" ] || [ -z "$VECTORCHORD_VERSION" ] || [ -z "$OS_CODENAME" ]; then
+    echo "Error: Missing required build-args (PG_VERSION, PG_MAJOR, PG_SEARCH_VERSION, PGVECTORSCALE_VERSION, VECTORCHORD_VERSION, OS_CODENAME)"
     exit 1
 fi
 
@@ -37,9 +37,15 @@ curl -L "https://github.com/timescale/pgvectorscale/releases/download/${PGVECTOR
 unzip /tmp/pgvectorscale.zip -d /tmp/pgvectorscale
 apt-get install -y /tmp/pgvectorscale/*.deb
 
-# 5. Cleanup
+# 5. Install VectorChord
+echo "Downloading VectorChord ${VECTORCHORD_VERSION} for ${ARCH}..."
+# Filename format: postgresql-18-vchord_1.0.0-1_amd64.deb
+curl -L "https://github.com/tensorchord/VectorChord/releases/download/${VECTORCHORD_VERSION}/postgresql-${PG_MAJOR}-vchord_${VECTORCHORD_VERSION}-1_${ARCH}.deb" -o /tmp/vchord.deb
+apt-get install -y /tmp/vchord.deb
+
+# 6. Cleanup
 echo "Cleaning up build tools and temporary files..."
 apt-get purge -y --auto-remove curl unzip ca-certificates
-rm -rf /tmp/pg_search.deb /tmp/pgvectorscale.zip /tmp/pgvectorscale /var/lib/apt/lists/*
+rm -rf /tmp/pg_search.deb /tmp/pgvectorscale.zip /tmp/pgvectorscale /tmp/vchord.deb /var/lib/apt/lists/*
 
 echo "Installation complete!"

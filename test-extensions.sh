@@ -17,12 +17,12 @@ docker run --rm \
     postgres -D /tmp/pgdata -k /tmp > /dev/null 2>&1 & 
     
     timeout=30
-    until pg_isready -h /tmp || [ $timeout -eq 0 ]; do
+    until pg_isready -h /tmp || [ \$timeout -eq 0 ]; do
         sleep 1
         ((timeout--))
     done
     
-    if [ $timeout -eq 0 ]; then
+    if [ \$timeout -eq 0 ]; then
         echo 'Error: PostgreSQL failed to start'
         exit 1
     fi
@@ -30,9 +30,10 @@ docker run --rm \
     echo 'Creating extensions...'
     psql -h /tmp -U postgres -d postgres -c 'CREATE EXTENSION IF NOT EXISTS pg_search;'
     psql -h /tmp -U postgres -d postgres -c 'CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;'
+    psql -h /tmp -U postgres -d postgres -c 'CREATE EXTENSION IF NOT EXISTS vchord;'
     
     echo 'Verifying installation...'
-    psql -h /tmp -U postgres -d postgres -c '\dx'
+    psql -h /tmp -U postgres -d postgres -c '\\dx'
     
     echo 'Test passed successfully!'
   "
