@@ -43,7 +43,17 @@ echo "Downloading VectorChord ${VECTORCHORD_VERSION} for ${ARCH}..."
 curl -L "https://github.com/tensorchord/VectorChord/releases/download/${VECTORCHORD_VERSION}/postgresql-${PG_MAJOR}-vchord_${VECTORCHORD_VERSION}-1_${ARCH}.deb" -o /tmp/vchord.deb
 apt-get install -y /tmp/vchord.deb
 
-# 6. Cleanup
+# 6. Configure shared_preload_libraries
+echo "Configuring shared_preload_libraries in postgresql.conf.sample..."
+SAMPLE_CONF="/usr/share/postgresql/${PG_MAJOR}/postgresql.conf.sample"
+if [ -f "$SAMPLE_CONF" ]; then
+    # We add both pg_search and vchord
+    sed -i "s/#shared_preload_libraries = ''/shared_preload_libraries = 'pg_search,vchord'/g" "$SAMPLE_CONF"
+else
+    echo "Warning: $SAMPLE_CONF not found, skipping configuration."
+fi
+
+# 7. Cleanup
 echo "Cleaning up build tools and temporary files..."
 apt-get purge -y --auto-remove curl unzip ca-certificates
 rm -rf /tmp/pg_search.deb /tmp/pgvectorscale.zip /tmp/pgvectorscale /tmp/vchord.deb /var/lib/apt/lists/*

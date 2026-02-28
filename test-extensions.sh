@@ -14,7 +14,7 @@ docker run --rm \
     initdb -D /tmp/pgdata > /dev/null
     
     echo 'Starting PostgreSQL...'
-    postgres -D /tmp/pgdata -k /tmp -c shared_preload_libraries='vchord' > /tmp/postgres.log 2>&1 & 
+    postgres -D /tmp/pgdata -k /tmp > /tmp/postgres.log 2>&1 & 
     
     timeout=30
     until pg_isready -h /tmp || [ \$timeout -eq 0 ]; do
